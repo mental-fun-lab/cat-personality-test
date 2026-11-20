@@ -87,7 +87,7 @@
       '    <div class="result-photo-ring">' +
       '      <div class="result-photo"><img src="' + photoURL + '" alt="你的猫咪"></div>' +
       '    </div>' +
-      '    <p class="result-label">你家主子的猫格是</p>' +
+      '    <p class="result-label">你家猫咪的猫格是</p>' +
       '    <h1 class="result-name">' + p.name + '</h1>' +
       '    <p class="result-slogan">“' + p.slogan + '”</p>' +
       '    <div class="result-tags">' + p.tags.map(function (t) { return '<span>' + t + '</span>'; }).join('') + '</div>' +
@@ -104,13 +104,13 @@
       '    </div>' +
       '  </div>' +
       '  <div class="result-lore">' +
-      '    <h2 class="indices-title">相猫经 · 玄学批注</h2>' +
-      p.lore.map(function (line) {
+      '    <h2 class="indices-title">养猫小贴士</h2>' +
+      p.care.map(function (line) {
         return '<p class="lore-line">' + line + '</p>';
       }).join('') +
       '  </div>' +
       '  <div class="result-indices">' +
-      '    <h2 class="indices-title">主子性格四项指标</h2>' +
+      '    <h2 class="indices-title">猫咪性格四项指标</h2>' +
       indices.map(function (idx) {
         var v = result.indices[idx.key];
         return '' +
@@ -122,7 +122,7 @@
       }).join('') +
       '  </div>' +
       '  <div class="result-mix">' +
-      '    <h2 class="indices-title">猫格基因构成</h2>' +
+      '    <h2 class="indices-title">猫格构成</h2>' +
       result.mix.map(function (row, i) {
         return '' +
           '<div class="mix-row' + (i === 0 ? ' is-top' : '') + '" style="--m-color:' + row.persona.color + '">' +
@@ -139,7 +139,7 @@
       '    <span class="m-desc">' + p.matchDesc + '</span></span>' +
       '  </div>' +
       '  <div class="result-actions">' +
-      '    <a class="btn btn-primary-lg" id="btn-save-card" href="#" download="我家主子的猫格-' + p.name + '.png">保存主子档案卡</a>' +
+      '    <a class="btn btn-primary-lg" id="btn-save-card" href="#" download="我家主子的猫格-' + p.name + '.png">保存猫咪性格卡</a>' +
       '    <button type="button" class="btn btn-secondary-lg" id="btn-retake">再测一只猫</button>' +
       '    <p class="result-share-hint">把档案卡发到猫友群，看看谁家主子最像</p>' +
       '  </div>' +
@@ -167,7 +167,7 @@
     // 调试钩子：控制台可重新生成结果卡（也用于自动化验证）
     window.__catCard = function () { return buildShareCard(result, photoURL); };
 
-    document.title = '我家主子是「' + p.name + '」——AI 猫格鉴定';
+    document.title = '我家猫咪是「' + p.name + '」——猫咪性格测试';
     showScreen('result');
   }
 
