@@ -189,38 +189,38 @@
 
   /**
    * 相猫纹样鉴定：依据毛色的整体构成与上下分布，推断古称纹样。
-   * 名称来自民间相猫经流传的毛色说法，仅作趣味展示。
+   * 名称为民间流传的毛色纹样叫法，仅作趣味展示。
    */
   function detectPattern(f) {
     var o = f.orange + f.cream * 0.6 + f.tabby * 0.7;
     if (f.black > 0.12 && f.white > 0.14 && f.black + f.white > 0.45) {
       if (f.top.black > f.bottom.black + 0.12 && f.bottom.white > f.top.white) {
-        return { name: '乌云盖雪', note: '背黑如墨、腹白似雪，古籍里的镇宅旺家之相。' };
+        return { name: '乌云盖雪', note: '背黑腹白，经典奶牛配色，性格普遍活泼亲人。' };
       }
-      return { name: '奶牛踏雪', note: '黑白花配四蹄踏雪，民间称“警长配色”，看家护院一把好手。' };
+      return { name: '奶牛踏雪', note: '黑白花配白色爪尖，活泽数值拉满的配置。' };
     }
     if (o > 0.12 && f.black > 0.12 && f.white > 0.12) {
-      return { name: '三花聚顶', note: '黄白黑三色齐聚，传说中的招财纳福之相，戏精浓度也高。' };
+      return { name: '三花聚顶', note: '黄白黑三色集齐，基本都是小姑娘，聪明戏多。' };
     }
     if (o > 0.3 && f.white > 0.18) {
-      return { name: '金被银床', note: '黄背白腹，古称“金被银床”，主家有余粮、鼠辈绝迹。' };
+      return { name: '金被银床', note: '黄背白肚，橘白经典款，性格普遍亲人。' };
     }
     if (f.white > 0.62) {
-      return { name: '雪玉通被', note: '通体纯白如雪，古称雪玉，贵气逼人的公主 / 王子之相。' };
+      return { name: '雪玉通被', note: '通体纯白，优雅挂的，多数有点小洁癖。' };
     }
     if (f.black > 0.5) {
-      return { name: '玄猫镇宅', note: '“玄猫，辟邪之物也”，黑猫进门，好运自来。' };
+      return { name: '玄猫镇宅', note: '通体纯黑，老一辈喜欢的吉祥配色。' };
     }
     if (f.gray > 0.45) {
-      return { name: '蓝金血统', note: '灰蓝毛色自带高级感，猫中“老钱风”担当。' };
+      return { name: '蓝金血统', note: '灰蓝毛色，气质挂，性格普遍稳重。' };
     }
     if (o > 0.5) {
-      return { name: '十橘九胖', note: '橘色主力毛色，古籍云：橘猫镇宅，家粮常满（也被吃空）。' };
+      return { name: '十橘九胖', note: '橘色主导，干饭天赋点满的配置。' };
     }
     if (f.tabby > 0.3) {
-      return { name: '狸花战纹', note: '棕色虎斑条纹，天生将帅战甲，野外生存点满。' };
+      return { name: '狸花战纹', note: '棕色虎斑条纹，本土经典款，皮实好养。' };
     }
-    return { name: '天然限定款', note: '毛色混搭独特，属于全球限量发售的花色。' };
+    return { name: '天然限定款', note: '花色混搭独特，全球限量款。' };
   }
 
   /** 特征 → 人设得分；毛色是主信号，纹理 / 明暗只做辅助与兜底。 */
