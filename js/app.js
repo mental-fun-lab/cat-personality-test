@@ -79,6 +79,7 @@
     var p = result.persona;
     var match = findPersona(p.match);
     var indices = DATA.indices;
+    getBadgeImage(p); // 预载猫格徽章，保证保存卡片时可用
 
     el.resultBody.innerHTML = '' +
       '<div class="result-card" style="--p-color:' + p.color + ';--p-soft:' + p.soft + ';--m-color:' + match.color + ';--m-soft:' + match.soft + '">' +
@@ -163,11 +164,14 @@
       showScreen('home');
     });
 
+    // 调试钩子：控制台可重新生成结果卡（也用于自动化验证）
+    window.__catCard = function () { return buildShareCard(result, photoURL); };
+
     document.title = '我家主子是「' + p.name + '」——AI 猫格鉴定';
     showScreen('result');
   }
 
-  /** 结果卡 PNG：1080×1440，canvas 绘制（照片 + 猫格信息 + 指数条）。 */
+  /** 结果卡 PNG：1080×1440，canvas 绘制（主题色 + 猫爪印 + 徽章设计）。 */
   function buildShareCard(result, photoURL) {
     var p = result.persona;
     var W = 1080;
@@ -176,86 +180,139 @@
     canvas.width = W;
     canvas.height = H;
     var ctx = canvas.getContext('2d');
+    var cx = W / 2;
 
+    // 1、主题色背景 + 装饰（猫爪印 / 圆点）
     ctx.fillStyle = p.soft;
     ctx.fillRect(0, 0, W, H);
+    drawPaw(ctx, 120, 150, 46, p.color, 0.14);
+    drawPaw(ctx, 950, 110, 38, p.color, 0.12);
+    drawPaw(ctx, 1000, 620, 42, p.color, 0.10);
+    drawPaw(ctx, 90, 700, 36, p.color, 0.10);
+    drawPaw(ctx, 960, 1250, 44, p.color, 0.12);
+    drawPaw(ctx, 130, 1150, 34, p.color, 0.10);
 
-    roundRect(ctx, 60, 60, W - 120, H - 120, 64);
+    // 2、白色主体卡
+    roundRect(ctx, 56, 96, W - 112, H - 224, 56);
     ctx.fillStyle = '#ffffff';
     ctx.fill();
 
-    // 照片圆 + 描边
+    // 3、猫咪照片（大圆角方形 + 主题色描边 + 猫格徽章）
     var photo = new Image();
     photo.src = photoURL;
-    var cx = W / 2;
-    var cy = 360;
-    var r = 240;
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(cx, cy, r + 14, 0, Math.PI * 2);
-    ctx.strokeStyle = p.color;
-    ctx.lineWidth = 12;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.clip();
     var size = Math.min(photo.width, photo.height);
-    ctx.drawImage(photo, (photo.width - size) / 2, (photo.height - size) / 2, size, size, cx - r, cy - r, r * 2, r * 2);
+    roundRect(ctx, 190, 148, 700, 700, 48);
+    ctx.save();
+    ctx.clip();
+    ctx.drawImage(photo, (photo.width - size) / 2, (photo.height - size) / 2, size, size, 190, 148, 700, 700);
     ctx.restore();
+    roundRect(ctx, 190, 148, 700, 700, 48);
+    ctx.strokeStyle = p.color;
+    ctx.lineWidth = 10;
+    ctx.stroke();
 
+    // 猫格小猫头徽章（SVG 光栅化后贴在照片右下角）
+    drawFaceBadge(ctx, p, 760, 742);
+
+    // 4、猫格名称徽章
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#a09a8e';
-    ctx.font = '600 28px -apple-system, PingFang SC, sans-serif';
-    ctx.fillText('你 家 主 子 的 猫 格 是', cx, 706);
+    roundRect(ctx, cx - 300, 902, 600, 88, 44);
     ctx.fillStyle = p.color;
-    ctx.font = '800 84px -apple-system, PingFang SC, sans-serif';
-    ctx.fillText(p.name, cx, 800);
-    ctx.fillStyle = '#33302a';
-    ctx.font = '600 34px -apple-system, PingFang SC, sans-serif';
-    ctx.fillText('“' + p.slogan + '”', cx, 862);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 46px -apple-system, PingFang SC, sans-serif';
+    ctx.fillText(p.name, cx, 962);
 
-    // 纹样鉴定徽标
-    var patText = '纹样鉴定：' + result.pattern.name;
-    ctx.font = '700 30px -apple-system, PingFang SC, sans-serif';
-    var patW = ctx.measureText(patText).width + 56;
-    roundRect(ctx, cx - patW / 2, 892, patW, 52, 26);
+    // 5、宣言 + 纹样徽章
+    ctx.fillStyle = '#33302a';
+    ctx.font = '600 33px -apple-system, PingFang SC, sans-serif';
+    ctx.fillText('“' + p.slogan + '”', cx, 1036);
+
+    var patText = '纹样鉴定 · ' + result.pattern.name;
+    ctx.font = '700 28px -apple-system, PingFang SC, sans-serif';
+    var patW = ctx.measureText(patText).width + 96;
+    roundRect(ctx, cx - patW / 2, 1064, patW, 56, 28);
     ctx.fillStyle = p.soft;
     ctx.fill();
     ctx.fillStyle = p.color;
-    ctx.fillText(patText, cx, 928);
+    ctx.fillText(patText, cx, 1102);
 
-    // 指数条
+    // 6、四项指标（圆角条 + 数值）
     var rows = DATA.indices;
-    var startY = 1004;
-    var rowH = 78;
+    var startY = 1176;
+    var rowH = 62;
     rows.forEach(function (idx, i) {
-      var v = result.indices[idx.key];
       var y = startY + i * rowH;
       ctx.textAlign = 'right';
       ctx.fillStyle = '#33302a';
-      ctx.font = '700 30px -apple-system, PingFang SC, sans-serif';
-      ctx.fillText(idx.name, 330, y + 22);
-      roundRect(ctx, 360, y, 470, 22, 11);
+      ctx.font = '700 29px -apple-system, PingFang SC, sans-serif';
+      ctx.fillText(idx.name, 310, y + 21);
+      roundRect(ctx, 340, y, 420, 20, 10);
       ctx.fillStyle = '#f2ede4';
       ctx.fill();
-      roundRect(ctx, 360, y, Math.max(24, 470 * v / 100), 22, 11);
-      ctx.fillStyle = p.color;
-      if (v >= 75) {
-        ctx.fillStyle = '#e2574c';
-      }
+      roundRect(ctx, 340, y, Math.max(22, 420 * result.indices[idx.key] / 100), 20, 10);
+      ctx.fillStyle = result.indices[idx.key] >= 75 ? '#e2574c' : p.color;
       ctx.fill();
       ctx.textAlign = 'left';
       ctx.fillStyle = '#6d675d';
-      ctx.font = '700 28px -apple-system, PingFang SC, sans-serif';
-      ctx.fillText(String(v), 856, y + 22);
+      ctx.font = '700 27px -apple-system, PingFang SC, sans-serif';
+      ctx.fillText(String(result.indices[idx.key]), 782, y + 21);
     });
 
+    // 7、页脚
     ctx.textAlign = 'center';
     ctx.fillStyle = '#a09a8e';
     ctx.font = '24px -apple-system, PingFang SC, sans-serif';
-    ctx.fillText('拍照测主子性格 · 照片仅本机分析 · @ 铲屎官来战', cx, H - 104);
+    ctx.fillText('拍张照测主子性格 · 照片仅本机分析 · @ 铲屎官来战', cx, H - 68);
 
     return canvas.toDataURL('image/png');
+  }
+
+  /** 猫爪印：一个肉垫 + 三根指头。 */
+  function drawPaw(ctx, x, y, r, color, alpha) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(x, y, r * 0.62, r * 0.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    [-1, 0, 1].forEach(function (k) {
+      ctx.beginPath();
+      ctx.ellipse(x + k * r * 0.42, y - r * 0.55, r * 0.16, r * 0.22, k * 0.3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  /** 猫格小猫头徽章：SVG 预载缓存（渲染结果页时开始加载，保存卡片时已就绪）。 */
+  var badgeCache = {};
+  function getBadgeImage(persona) {
+    if (!badgeCache[persona.key]) {
+      var img = new Image();
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(window.CAT_ART.personaFace(persona.face));
+      badgeCache[persona.key] = img;
+    }
+    return badgeCache[persona.key];
+  }
+
+  function drawFaceBadge(ctx, persona, x, y) {
+    ctx.beginPath();
+    ctx.arc(x + 66, y + 66, 66, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    ctx.strokeStyle = persona.color;
+    ctx.lineWidth = 5;
+    ctx.stroke();
+    var img = getBadgeImage(persona);
+    if (!img.complete || !img.naturalWidth) {
+      return;
+    }
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x + 66, y + 66, 62, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(img, x + 8, y + 14, 116, 100);
+    ctx.restore();
   }
 
   function roundRect(ctx, x, y, w, h, r) {
